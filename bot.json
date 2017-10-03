@@ -1,0 +1,16 @@
+{
+	"xmpp": {
+		"admins": [
+			"Admin"
+		],
+		"jid": "bot@domain.tld",
+		"password": "<password>",
+		"room": "minecraft@conference.domain.tld"
+	},
+	"rcon": {
+		"server": "minecraft",
+		"port": 25575,
+		"password": "<password>"
+	},
+	"logfile": "logs/latest.log"
+}
