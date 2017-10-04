@@ -2,13 +2,13 @@
 #
 
 import logging
-import tailer
 import re
 import mcrcon
 import threading
 import xmpp
 import socket
 import time
+import os
 
 
 class MinecraftUser(threading.Thread):
@@ -118,14 +118,23 @@ class LogParser(threading.Thread):
     def __init__(self, filename, callback):
         threading.Thread.__init__(self)
         self.filename = filename
+        self.file = open(self.filename)
+        self.inode = os.stat(self.filename)
         self.callback = callback
         self.running = True
 
-    def run(self):
+    def open(self, end = False):
         self.file = open(self.filename)
-        self.start_pos = self.file.tell()
-        self.file.seek(0, 2)
+        self.inode = os.stat(self.filename).st_ino
+        if end:
+            self.file.seek(0, 2)
 
+    def has_rotated(self):
+        inode = os.stat(self.filename).st_ino
+        return self.inode != inode
+
+    def run(self):
+        self.open(True)
         while self.running:
             where = self.file.tell()
             line = self.file.readline()
@@ -145,8 +154,11 @@ class LogParser(threading.Thread):
                 trailing = False
                 self.callback(line)
             else:
-                trailing = True
-                self.file.seek(where, 0)
+                if self.has_rotated():
+                    self.open()
+                else:
+                    trailing = True
+                    self.file.seek(where, 0)
                 time.sleep(1.0)
 
     def stop(self):
@@ -169,13 +181,30 @@ def test_logparser():
     time.sleep(2)
     logfile.write("world\n")
     logfile.flush()
-    time.sleep(5)
+    time.sleep(2)
     logfile.write("summer\n")
     logfile.flush()
     time.sleep(2)
-
     logfile.close()
+
+    os.rename("test.log", "test.1.log")
+    logfile = open("test.log", 'w')
+
+    time.sleep(1)
+    logfile.write("hallo\n")
+    logfile.flush()
+    time.sleep(2)
+    logfile.write("welt\n")
+    logfile.flush()
+    time.sleep(2)
+    logfile.write("sommer\n")
+    logfile.flush()
+    time.sleep(2)
+    logfile.close()
+
     p.stop()
+    os.remove("test.log")
+    os.remove("test.1.log")
 
 if __name__ == "__main__":
     test_logparser()
