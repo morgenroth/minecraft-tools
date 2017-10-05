@@ -11,7 +11,7 @@ import socket
 
 def main():
     # enable logging
-    logging.basicConfig(level=logging.DEBUG,
+    logging.basicConfig(level=logging.INFO,
                         format='%(levelname)-8s %(message)s')
 
     # load settings
