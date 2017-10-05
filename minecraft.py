@@ -118,12 +118,13 @@ class LogParser(threading.Thread):
     def __init__(self, filename, callback):
         threading.Thread.__init__(self)
         self.filename = filename
-        self.file = open(self.filename)
-        self.inode = os.stat(self.filename)
+        self.file = None
         self.callback = callback
         self.running = True
 
     def open(self, end = False):
+        if self.file:
+            self.file.close()
         self.file = open(self.filename)
         self.inode = os.stat(self.filename).st_ino
         if end:
